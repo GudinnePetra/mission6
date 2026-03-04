@@ -1,21 +1,35 @@
-using UnityEngine;
 using TMPro;
+using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
     private int score;
     public bool isGameActive;
-    public TextMeshProUGUI scoreText;
     public GameObject titleScreen;
-
     public int lives = 3;
 
     public GameObject heart1;
     public GameObject heart2;
     public GameObject heart3;
+
+    private int pizzaCount = 0;
+    private int skullCount = 0;
+    private int bananaCount = 0;
+    private int cookieCount = 0;
+
+    // Oyun sonunda istatistikleri göstereceğimiz UI Yazısı
+    public TextMeshProUGUI statsText;
+    public TextMeshProUGUI pizzaStatsText;
+    public TextMeshProUGUI skullStatsText;
+    public TextMeshProUGUI bananaStatsText;
+    public TextMeshProUGUI cookieStatsText;
+    public TextMeshProUGUI scoreText;
+
+    public GameObject restartButton;
     public void StartGame(int difficulty)
     {
-        
+        scoreText.gameObject.SetActive(true);
         score = 0;
         isGameActive = true;
         UpdateScore(0);
@@ -23,22 +37,23 @@ public class GameManager : MonoBehaviour
         heart1.SetActive(true);
         heart2.SetActive(true);
         heart3.SetActive(true);
-        GameObject.Find("SpawnManager").GetComponent<SpawnManager>().StartSpawning();
+        GameObject.Find("SpawnManager").GetComponent<SpawnManager>().StartSpawning(difficulty);
+        pizzaCount = 0;
+        skullCount = 0;
+        bananaCount = 0;
+        cookieCount = 0;
+
     }
 
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.A))
-        {
-            Debug.Log("Şartsız şurtsuz A tuşuna basıldı!");
-        }
+   
         // Sadece oyun aktifse tuşlara basılabilsin
         if (isGameActive)
         {
             // A tuşuna basılırsa Obje1 etiketli objeyi ara ve yok et
             if (Input.GetKeyDown(KeyCode.A))
             {
-                Debug.Log("A tuşuna basmayı algıladım!");
                 CheckAndDestroyObject("pizza", 5); // 5 puan versin
             }
             // S tuşuna basılırsa Obje2 etiketli objeyi ara ve yok et
@@ -65,10 +80,13 @@ public class GameManager : MonoBehaviour
 
         // Eğer obje gerçekten sahnede varsa (boş/null değilse)
         if (objToDestroy != null)
-        {
+        {   
             Destroy(objToDestroy); // Objeyi yok et
             UpdateScore(pointsToAdd); // Puanı ekle
-
+            if (targetTag == "pizza") pizzaCount++;
+            else if (targetTag == "skull") skullCount++;
+            else if (targetTag == "banana") bananaCount++;
+            else if (targetTag == "cookie") cookieCount++;
             // İstersen buraya patlama efekti (Particle) kodunu da ekleyebilirsin!
         }
 
@@ -101,10 +119,30 @@ public class GameManager : MonoBehaviour
             GameOver();
         }
     }
-    
+
     public void GameOver()
     {
         isGameActive = false;
-        titleScreen.SetActive(true);
+        statsText.gameObject.SetActive(true);
+
+        pizzaStatsText.gameObject.SetActive(true);
+        skullStatsText.gameObject.SetActive(true);
+        bananaStatsText.gameObject.SetActive(true);
+        cookieStatsText.gameObject.SetActive(true);
+
+
+        pizzaStatsText.text = "Pizza (A): " + pizzaCount;
+        skullStatsText.text = "Kuru Kafa (S): " + skullCount;
+        bananaStatsText.text = "Muz (D): " + bananaCount;
+        cookieStatsText.text = "Kurabiye (F): " + cookieCount;
+        // Gizlediğimiz yazıyı ekranda görünür yap
+
+        restartButton.SetActive(true); // Game over olunca butonu göster
+    }
+    public void RestartGame()
+    {
+        // Şu an aktif olan sahnenin adını al ve o sahneyi baştan yükle!
+        // Bu işlem her şeyi (skoru, canları, Title Screen'i) ilk baştaki haline döndürür.
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 }
